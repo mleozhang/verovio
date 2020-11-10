@@ -54,7 +54,7 @@ public:
     virtual void CloneReset();
 
     virtual FacsimileInterface *GetFacsimileInterface() { return dynamic_cast<FacsimileInterface *>(this); }
-    
+
     /**
      * Return a const pointer to the children
      */
@@ -125,6 +125,9 @@ public:
     void AddLedgerLineAbove(int count, int left, int right, bool cueSize);
     void AddLedgerLineBelow(int count, int left, int right, bool cueSize);
     ///@}
+
+    void InitCrossStaff();
+    void ClearCrossStaff();
 
     //----------//
     // Functors //
@@ -254,6 +257,14 @@ private:
     ArrayOfLedgerLines *m_ledgerLinesAboveCue;
     ArrayOfLedgerLines *m_ledgerLinesBelowCue;
     ///@}
+
+    /**
+     * A list of children (layers) including cross-staff one from other staves
+     */
+    ArrayOfObjects m_drawingChildren;
+
+    Layer *m_crossStaffAbove;
+    Layer *m_crossStaffBelow;
 };
 
 //----------------------------------------------------------------------------

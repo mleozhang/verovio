@@ -49,6 +49,8 @@ Staff::Staff(int n) : Object("staff-"), FacsimileInterface(), AttNInteger(), Att
     m_ledgerLinesBelow = NULL;
     m_ledgerLinesAboveCue = NULL;
     m_ledgerLinesBelowCue = NULL;
+    m_crossStaffAbove = NULL;
+    m_crossStaffBelow = NULL;
 
     Reset();
     SetN(n);
@@ -57,6 +59,7 @@ Staff::Staff(int n) : Object("staff-"), FacsimileInterface(), AttNInteger(), Att
 Staff::~Staff()
 {
     ClearLedgerLines();
+    ClearCrossStaff();
 }
 
 void Staff::Reset()
@@ -77,6 +80,7 @@ void Staff::Reset()
     m_drawingStaffDef = NULL;
 
     ClearLedgerLines();
+    ClearCrossStaff();
 }
 
 void Staff::CloneReset()
@@ -87,6 +91,9 @@ void Staff::CloneReset()
     m_ledgerLinesBelow = NULL;
     m_ledgerLinesAboveCue = NULL;
     m_ledgerLinesBelowCue = NULL;
+    m_crossStaffAbove = NULL;
+    m_crossStaffBelow = NULL;
+    m_drawingChildren.clear();
 
     m_drawingStaffSize = 100;
     m_drawingLines = 5;
@@ -98,7 +105,8 @@ void Staff::CloneReset()
 
 const ArrayOfObjects *Staff::GetChildren(bool docChildren) const
 {
-    return Object::GetChildren(true);
+    if (docChildren || m_drawingChildren.empty()) return Object::GetChildren(true);
+    return &m_drawingChildren;
 }
 
 void Staff::ClearLedgerLines()
@@ -119,6 +127,32 @@ void Staff::ClearLedgerLines()
         delete m_ledgerLinesBelowCue;
         m_ledgerLinesBelowCue = NULL;
     }
+}
+
+void Staff::ClearCrossStaff()
+{
+    if (m_crossStaffAbove) {
+        delete m_crossStaffAbove;
+        m_crossStaffAbove = NULL;
+    }
+    if (m_crossStaffBelow) {
+        delete m_crossStaffBelow;
+        m_crossStaffBelow = NULL;
+    }
+    m_drawingChildren.clear();
+}
+
+void Staff::InitCrossStaff()
+{
+    assert(!m_crossStaffAbove && !m_crossStaffBelow);
+    m_drawingChildren.clear();
+    const ArrayOfObjects *children = this->Object::GetChildren();
+
+    m_crossStaffAbove = new Layer();
+    m_drawingChildren.push_back(m_crossStaffAbove);
+    m_drawingChildren.insert(m_drawingChildren.end(), children->begin(), children->end());
+    m_crossStaffBelow = new Layer();
+    m_drawingChildren.push_back(m_crossStaffBelow);
 }
 
 bool Staff::IsSupportedChild(Object *child)
@@ -479,6 +513,7 @@ int Staff::ResetDrawing(FunctorParams *functorParams)
 {
     this->m_timeSpanningElements.clear();
     ClearLedgerLines();
+    ClearCrossStaff();
     return FUNCTOR_CONTINUE;
 }
 
