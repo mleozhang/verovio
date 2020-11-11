@@ -522,6 +522,31 @@ int Staff::PrepareCrossStaff(FunctorParams *functorParams)
     PrepareCrossStaffParams *params = vrv_params_cast<PrepareCrossStaffParams *>(functorParams);
     assert(params);
 
+    ListOfObjects crossStaffElements;
+    AttHasStaff hasStaff;
+    this->FindAllDescendantByComparison(&crossStaffElements, &hasStaff);
+    std::set<std::pair<Staff *, Layer *> > crossStaffPairs;
+
+    for (auto item : crossStaffElements) {
+        DurationInterface *durElement = item->GetDurationInterface();
+        if (!durElement) continue;
+
+        AttNIntegerComparison comparisonFirst(STAFF, durElement->GetStaff().at(0));
+        Staff *staff = dynamic_cast<Staff *>(params->m_currentMeasure->FindDescendantByComparison(&comparisonFirst, 1));
+        // For some reason the staff cannot be find in the measure - ignore it
+        if (!staff) continue;
+        // Check if we have a cross-staff to itself - ignore it
+        if (staff == this) continue;
+
+        Layer *layer = vrv_cast<Layer *>(item->GetFirstAncestor(LAYER));
+        assert(layer);
+
+        crossStaffPairs.insert(std::make_pair(staff, layer));
+    }
+
+    // Nothing to prepare for this staff
+    if (crossStaffPairs.empty()) return FUNCTOR_SIBLINGS;
+
     return FUNCTOR_CONTINUE;
 }
 
