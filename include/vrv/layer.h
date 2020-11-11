@@ -62,6 +62,8 @@ public:
     virtual bool IsSupportedChild(Object *object);
     ///@}
 
+    void AddChildRef(Object *child);
+
     /**
      * Return the index position of the layer in its staff parent.
      * The index position is 0-based.

@@ -1444,15 +1444,25 @@ int LayerElement::PrepareCrossStaff(FunctorParams *functorParams)
     m_crossStaff = NULL;
     m_crossLayer = NULL;
 
+    Staff *parentStaff = vrv_cast<Staff *>(this->GetFirstAncestor(STAFF));
+    assert(parentStaff);
+    Layer *parentLayer = vrv_cast<Layer *>(this->GetFirstAncestor(LAYER));
+    assert(parentLayer);
+    Layer *layerRef = parentStaff->GetCrossStaffLayerRef(parentStaff, parentLayer);
+
     // Look for cross-staff situations
     // If we have one, make is available in m_crossStaff
     DurationInterface *durElement = this->GetDurationInterface();
-    if (!durElement) return FUNCTOR_CONTINUE;
+    if (!durElement) {
+        layerRef->AddChildRef(this);
+        return FUNCTOR_CONTINUE;
+    }
 
     // If we have not @staff, set to what we had before (quite likely NULL for all non cross staff cases)
     if (!durElement->HasStaff()) {
         m_crossStaff = params->m_currentCrossStaff;
         m_crossLayer = params->m_currentCrossLayer;
+        layerRef->AddChildRef(this);
         return FUNCTOR_CONTINUE;
     }
 
@@ -1468,18 +1478,15 @@ int LayerElement::PrepareCrossStaff(FunctorParams *functorParams)
         return FUNCTOR_CONTINUE;
     }
 
-    Staff *parentStaff = vrv_cast<Staff *>(this->GetFirstAncestor(STAFF));
-    assert(parentStaff);
     // Check if we have a cross-staff to itself...
     if (m_crossStaff == parentStaff) {
         LogWarning("The cross staff reference '%d' for element '%s' seems to be identical to the parent staff",
             durElement->GetStaff().at(0), this->GetUuid().c_str());
         m_crossStaff = NULL;
+        layerRef->AddChildRef(this);
         return FUNCTOR_CONTINUE;
     }
 
-    Layer *parentLayer = vrv_cast<Layer *>(this->GetFirstAncestor(LAYER));
-    assert(parentLayer);
     // Now try to get the corresponding layer - for now look for the same layer @n
     int layerN = parentLayer->GetN();
     // When we will have allowed @layer in <note>, we will have to do:
@@ -1495,7 +1502,12 @@ int LayerElement::PrepareCrossStaff(FunctorParams *functorParams)
         LogWarning("Could not get the layer with cross-staff reference '%d' for element '%s'",
             durElement->GetStaff().at(0), this->GetUuid().c_str());
         m_crossStaff = NULL;
+        layerRef->AddChildRef(this);
+        return FUNCTOR_CONTINUE;
     }
+
+    Layer *crossStaffLayerRef = parentStaff->GetCrossStaffLayerRef(m_crossStaff, parentLayer);
+    crossStaffLayerRef->AddChildRef(this);
 
     params->m_currentCrossStaff = m_crossStaff;
     params->m_currentCrossLayer = m_crossLayer;

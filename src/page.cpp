@@ -231,7 +231,9 @@ void Page::LayOutHorizontally()
     // After this:
     // - each LayerElement object will have its Alignment pointer initialized
     Functor alignHorizontally(&Object::AlignHorizontally);
+    alignHorizontally.m_docChildren = true;
     Functor alignHorizontallyEnd(&Object::AlignHorizontallyEnd);
+    alignHorizontallyEnd.m_docChildren = true;
     AlignHorizontallyParams alignHorizontallyParams(&alignHorizontally, doc);
     this->Process(&alignHorizontally, &alignHorizontallyParams, &alignHorizontallyEnd);
 
@@ -429,11 +431,13 @@ void Page::LayOutVertically()
     // Fill the arrays of bounding boxes (above and below) for each staff alignment for which the box overflows.
     SetOverflowBBoxesParams setOverflowBBoxesParams(doc);
     Functor setOverflowBBoxes(&Object::SetOverflowBBoxes);
+    setOverflowBBoxes.m_docChildren = true;
     Functor setOverflowBBoxesEnd(&Object::SetOverflowBBoxesEnd);
     this->Process(&setOverflowBBoxes, &setOverflowBBoxesParams, &setOverflowBBoxesEnd);
 
     // Adjust the positioners of floationg elements (slurs, hairpin, dynam, etc)
     Functor adjustFloatingPositioners(&Object::AdjustFloatingPositioners);
+    adjustFloatingPositioners.m_docChildren = true;
     AdjustFloatingPositionersParams adjustFloatingPositionersParams(doc, &adjustFloatingPositioners);
     this->Process(&adjustFloatingPositioners, &adjustFloatingPositionersParams);
 
@@ -450,6 +454,7 @@ void Page::LayOutVertically()
 
     // Adjust the positioners of floationg elements placed between staves
     Functor adjustFloatingPositionersBetween(&Object::AdjustFloatingPositionersBetween);
+    adjustFloatingPositionersBetween.m_docChildren = true;
     AdjustFloatingPositionersBetweenParams adjustFloatingPositionersBetweenParams(
         doc, &adjustFloatingPositionersBetween);
     this->Process(&adjustFloatingPositionersBetween, &adjustFloatingPositionersBetweenParams);

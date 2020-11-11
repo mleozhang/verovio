@@ -1443,6 +1443,8 @@ public:
      */
     bool m_visibleOnly;
 
+    bool m_docChildren;
+
 private:
 };
 

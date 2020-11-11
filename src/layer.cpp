@@ -148,6 +148,18 @@ bool Layer::IsSupportedChild(Object *child)
     return true;
 }
 
+void Layer::AddChildRef(Object *child)
+{
+    ArrayOfObjects *children = this->GetChildrenForModification();
+
+    // Specical case where we do not set the parent because the reference will not have ownership
+    // Children will be treated as relinquished objects in the desctructor
+    // However, we need to make sure the child has a parent (somewhere else)
+    assert(child->GetParent() && this->IsReferenceObject());
+    children->push_back(child);
+    Modify();
+}
+
 LayerElement *Layer::GetPrevious(LayerElement *element)
 {
     this->ResetList(this);

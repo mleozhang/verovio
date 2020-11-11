@@ -202,6 +202,20 @@ void Staff::InitCrossStaffTarget(Layer *layerRef, data_STAFFREL place)
     }
 }
 
+Layer *Staff::GetCrossStaffLayerRef(Staff *staff, Layer *layer)
+{
+    assert(staff && layer);
+
+    std::pair key = std::make_pair(this, layer);
+    if (m_crossStaffLayerRefs.count(key)) {
+        return m_crossStaffLayerRefs.at(key);
+    }
+    else {
+        LogDebug("Cross staff layer ref missing");
+        return NULL;
+    }
+}
+
 /*
 void Staff::InitCrossStaff()
 {

@@ -129,6 +129,7 @@ public:
     void InitCrossStaff(Staff *staff, Layer *layer);
     void InitCrossStaffTarget(Layer *layerRef, data_STAFFREL place);
     void ClearCrossStaff();
+    Layer *GetCrossStaffLayerRef(Staff *staff, Layer *layer);
 
     //----------//
     // Functors //
