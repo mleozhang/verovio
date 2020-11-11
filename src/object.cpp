@@ -844,9 +844,9 @@ void Object::Process(Functor *functor, FunctorParams *functorParams, Functor *en
         };
 
         // We need a pointer to the array for the option to work on a reversed copy
-        ArrayOfObjects *children = &this->m_children;
+        const ArrayOfObjects *children = this->GetChildren(false);
         if (direction == BACKWARD) {
-            for (ArrayOfObjects::reverse_iterator iter = children->rbegin(); iter != children->rend(); ++iter) {
+            for (ArrayOfObjects::const_reverse_iterator iter = children->rbegin(); iter != children->rend(); ++iter) {
                 // we will end here if there is no filter at all or for the current child type
                 if (filterPredicate(*iter)) {
                     (*iter)->Process(functor, functorParams, endFunctor, filters, deepness, direction);
@@ -854,7 +854,7 @@ void Object::Process(Functor *functor, FunctorParams *functorParams, Functor *en
             }
         }
         else {
-            for (ArrayOfObjects::iterator iter = children->begin(); iter != children->end(); ++iter) {
+            for (ArrayOfObjects::const_iterator iter = children->begin(); iter != children->end(); ++iter) {
                 // we will end here if there is no filter at all or for the current child type
                 if (filterPredicate(*iter)) {
                     (*iter)->Process(functor, functorParams, endFunctor, filters, deepness, direction);

@@ -126,7 +126,8 @@ public:
     void AddLedgerLineBelow(int count, int left, int right, bool cueSize);
     ///@}
 
-    void InitCrossStaff();
+    void InitCrossStaff(Staff *staff, Layer *layer);
+    void InitCrossStaffTarget(Layer *layerRef, data_STAFFREL place);
     void ClearCrossStaff();
 
     //----------//
@@ -268,8 +269,7 @@ private:
      */
     ArrayOfObjects m_drawingChildren;
 
-    Layer *m_crossStaffAbove;
-    Layer *m_crossStaffBelow;
+    std::map<std::pair<Staff *, Layer *>, Layer *> m_crossStaffLayerRefs;
 };
 
 //----------------------------------------------------------------------------

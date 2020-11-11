@@ -49,8 +49,6 @@ Staff::Staff(int n) : Object("staff-"), FacsimileInterface(), AttNInteger(), Att
     m_ledgerLinesBelow = NULL;
     m_ledgerLinesAboveCue = NULL;
     m_ledgerLinesBelowCue = NULL;
-    m_crossStaffAbove = NULL;
-    m_crossStaffBelow = NULL;
 
     Reset();
     SetN(n);
@@ -91,8 +89,6 @@ void Staff::CloneReset()
     m_ledgerLinesBelow = NULL;
     m_ledgerLinesAboveCue = NULL;
     m_ledgerLinesBelowCue = NULL;
-    m_crossStaffAbove = NULL;
-    m_crossStaffBelow = NULL;
     m_drawingChildren.clear();
 
     m_drawingStaffSize = 100;
@@ -131,17 +127,82 @@ void Staff::ClearLedgerLines()
 
 void Staff::ClearCrossStaff()
 {
-    if (m_crossStaffAbove) {
-        delete m_crossStaffAbove;
-        m_crossStaffAbove = NULL;
+    for (auto &layerRef : m_crossStaffLayerRefs) {
+        delete layerRef.second;
     }
-    if (m_crossStaffBelow) {
-        delete m_crossStaffBelow;
-        m_crossStaffBelow = NULL;
-    }
+    m_crossStaffLayerRefs.clear();
     m_drawingChildren.clear();
 }
 
+void Staff::InitCrossStaff(Staff *staff, Layer *layer)
+{
+    assert(staff && layer);
+    assert(staff != this);
+
+    std::pair keyThis = std::make_pair(this, layer);
+    std::pair keyOther = std::make_pair(staff, layer);
+
+    bool isInitialized = true;
+    // It is not impossible that we already initialised the cross-staff for this layer
+    // This can happen if a layer is crossing above AND below (quite rare obviously...)
+    if (m_crossStaffLayerRefs.count(keyThis) == 0) {
+        isInitialized = false;
+        Layer *layerThis = new Layer();
+        layerThis->SetAsReferenceObject();
+        layerThis->SetParent(this);
+        m_crossStaffLayerRefs[keyThis] = layerThis;
+    }
+
+    // We should initialise a layer for a particular staff only once
+    assert(m_crossStaffLayerRefs.count(keyOther) == 0);
+    Layer *layerOther = new Layer();
+    layerOther->SetAsReferenceObject();
+    layerOther->SetParent(staff);
+    m_crossStaffLayerRefs[keyOther] = layerOther;
+
+    // The add the layer as drawing children in this and the other staff
+    data_STAFFREL place = (this->GetN() < staff->GetN()) ? STAFFREL_below : STAFFREL_above;
+
+    if (m_drawingChildren.empty()) {
+        const ArrayOfObjects *children = this->Object::GetChildren();
+        m_drawingChildren.assign(children->begin(), children->end());
+    }
+    // In the drawing children we need to replace the original layer with the layerRef
+    // We can (safely?) not preserve the editorial markup there in cases there is any
+    if (!isInitialized) {
+        Object *objectToReplace = layer;
+        // Take into account editorial markup - find the corresponding child in staff
+        if (layer->GetParent() != this) {
+            objectToReplace = layer->GetLastAncestorNot(STAFF);
+        }
+        assert(objectToReplace);
+        ArrayOfObjects::iterator iter = std::find(m_drawingChildren.begin(), m_drawingChildren.end(), objectToReplace);
+        assert(iter != m_drawingChildren.end());
+        (*iter) = m_crossStaffLayerRefs.at(keyThis);
+    }
+
+    staff->InitCrossStaffTarget(layerOther, place);
+}
+
+void Staff::InitCrossStaffTarget(Layer *layerRef, data_STAFFREL place)
+{
+    assert(layerRef);
+
+    if (m_drawingChildren.empty()) {
+        const ArrayOfObjects *children = this->Object::GetChildren();
+        m_drawingChildren.assign(children->begin(), children->end());
+    }
+    // This staff is below the original staff - place the layer as first child
+    if (place == STAFFREL_below) {
+        m_drawingChildren.push_back(layerRef);
+        std::rotate(m_drawingChildren.rbegin(), m_drawingChildren.rbegin() + 1, m_drawingChildren.rend());
+    }
+    else {
+        m_drawingChildren.push_back(layerRef);
+    }
+}
+
+/*
 void Staff::InitCrossStaff()
 {
     assert(!m_crossStaffAbove && !m_crossStaffBelow);
@@ -154,6 +215,7 @@ void Staff::InitCrossStaff()
     m_crossStaffBelow = new Layer();
     m_drawingChildren.push_back(m_crossStaffBelow);
 }
+*/
 
 bool Staff::IsSupportedChild(Object *child)
 {
@@ -546,6 +608,10 @@ int Staff::PrepareCrossStaff(FunctorParams *functorParams)
 
     // Nothing to prepare for this staff
     if (crossStaffPairs.empty()) return FUNCTOR_SIBLINGS;
+
+    for (auto &crossStaffPair : crossStaffPairs) {
+        this->InitCrossStaff(crossStaffPair.first, crossStaffPair.second);
+    }
 
     return FUNCTOR_CONTINUE;
 }
