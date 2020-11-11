@@ -517,6 +517,14 @@ int Staff::ResetDrawing(FunctorParams *functorParams)
     return FUNCTOR_CONTINUE;
 }
 
+int Staff::PrepareCrossStaff(FunctorParams *functorParams)
+{
+    PrepareCrossStaffParams *params = vrv_params_cast<PrepareCrossStaffParams *>(functorParams);
+    assert(params);
+
+    return FUNCTOR_CONTINUE;
+}
+
 int Staff::PrepareRpt(FunctorParams *functorParams)
 {
     PrepareRptParams *params = vrv_params_cast<PrepareRptParams *>(functorParams);

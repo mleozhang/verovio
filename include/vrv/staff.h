@@ -179,6 +179,11 @@ public:
     virtual int ResetDrawing(FunctorParams *functorParams);
 
     /**
+     * See Object::PrepareCrossStaff
+     */
+    virtual int PrepareCrossStaff(FunctorParams *functorParams);
+
+    /**
      * See Object::PrepareRpt
      */
     virtual int PrepareRpt(FunctorParams *functorParams);

@@ -289,6 +289,29 @@ private:
 };
 
 //----------------------------------------------------------------------------
+// AttHasStaff
+//----------------------------------------------------------------------------
+
+/**
+ * This class evaluates if the object has a Staff (@staff) attribute value
+ */
+class AttHasStaff : public Comparison {
+
+public:
+    AttHasStaff() : Comparison() {}
+
+    virtual bool operator()(Object *object)
+    {
+        if (!object->HasAttClass(ATT_STAFFIDENT)) return false;
+        AttStaffIdent *element = dynamic_cast<AttStaffIdent *>(object);
+        assert(element);
+        return (element->HasStaff());
+    }
+
+    virtual bool MatchesType(Object *object) { return true; }
+};
+
+//----------------------------------------------------------------------------
 // AttDurExtremeComparison
 //----------------------------------------------------------------------------
 
